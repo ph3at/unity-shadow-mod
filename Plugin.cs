@@ -2,6 +2,8 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using System;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace at.ph3.unity.shadow.res
 {
@@ -35,7 +37,9 @@ namespace at.ph3.unity.shadow.res
         private void Awake()
         {
             Logger = base.Logger;
-            Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
+            var assembly = Assembly.GetExecutingAssembly();
+            var version = FileVersionInfo.GetVersionInfo(assembly.Location).ProductVersion;
+            Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} {version} is loaded!");
 
             overrideQualitySettings = Config.Bind(
                 "General", "overrideQualitySettings", true,
@@ -141,7 +145,8 @@ namespace at.ph3.unity.shadow.res
                                 UnityEngine.GL.PushMatrix();
                                 UnityEngine.GL.LoadPixelMatrix(0, UnityEngine.Screen.width*2, UnityEngine.Screen.height*2, 0);
                                 UnityEngine.RenderTexture.active = secondaryReplacementRT;
-                                UnityEngine.Graphics.DrawTexture(new UnityEngine.Rect(0, 0, UnityEngine.Screen.width, UnityEngine.Screen.height * 2), replacementRT);
+                                var secondaryTargetWidth = (UnityEngine.Screen.width * 400) / (samplingFactor.Value);
+                                UnityEngine.Graphics.DrawTexture(new UnityEngine.Rect(0, 0, secondaryTargetWidth, UnityEngine.Screen.height * 2), replacementRT);
                                 UnityEngine.GL.PopMatrix();
                                 dumpRT(secondaryReplacementRT, String.Format("{0,8:D8}-mod-secondary-replacement-rt", frame));
                                 targetRT = secondaryReplacementRT;
